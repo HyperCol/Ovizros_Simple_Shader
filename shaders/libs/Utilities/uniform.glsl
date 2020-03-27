@@ -21,6 +21,9 @@ uniform ivec2 eyeBrightness;
 uniform float centerDepthSmooth;
 uniform ivec2 eyeBrightnessSmooth;
 
+uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
+
 //matrix
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;

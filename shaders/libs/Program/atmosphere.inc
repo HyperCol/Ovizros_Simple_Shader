@@ -27,8 +27,6 @@ out vec3 ambient1;
 out vec3 ambient2;
 out vec3 ambient3;
 out vec3 ambientD;
-
-out vec3 ambientU_noC;
 #endif
 
 #include "/libs/Utilities/noise.glsl"
@@ -122,8 +120,6 @@ void atmosphereCommons() {
 	ambient2 = texture2D(colortex0, vec2(0.125,0.03293)).rgb;
 	ambient3 = texture2D(colortex0, vec2(0.375,0.03293)).rgb;
 	ambientD = (ambientU + ambient0 + ambient1 + ambient2 + ambient3) * 0.2;
-	
-	ambientU_noC = texture2D(colortex0, vec2(0.25, 0.25)).rgb;
 	#endif
 }
 
@@ -153,8 +149,6 @@ in vec3 ambient1;
 in vec3 ambient2;
 in vec3 ambient3;
 in vec3 ambientD;
-
-in vec3 ambientU_noC;
 #endif
 
 #endif

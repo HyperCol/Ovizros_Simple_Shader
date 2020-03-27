@@ -17,9 +17,6 @@
 #ifndef _INCLUDE_UTILITIES_
 #define _INCLUDE_UTILITIES_
 
-#include "Utilities/uniform.glsl"
-#include "Utilities/noise.glsl"
-
 #define sum4(x) (dot(vec4(1.0), x))
 #define sum3(x) (dot(vec3(1.0), x))
 #define sum2(x) (x.x + x.y)
@@ -54,27 +51,32 @@ float linearstep(float edge0, float edge1, float x) {
 	return t;
 }
 
+#include "Utilities/uniform.glsl"
+#include "Utilities/noise.glsl"
+#include "Utilities/vector.glsl"
+
 //==============================================================================
 // Color utilities
 //==============================================================================
 
 vec3 fromGamma(vec3 c) {
-  return pow(c, vec3(gamma));
+	return pow(c, vec3(gamma));
 }
 
 vec4 fromGamma(vec4 c) {
-  return pow(c, vec4(gamma));
+	return pow(c, vec4(gamma));
 }
 
 #define SRGB_CLAMP
 
 vec3 toGamma(vec3 c) {
-  #ifdef SRGB_CLAMP
-  vec3 g = pow(c, vec3(agamma));
-  return vec3(0.0625) + g * vec3(0.9375);
-  #else
-  return pow(c, vec3(agamma));
-  #endif
+	c = c / (c + 1.0);
+	#ifdef SRGB_CLAMP
+	vec3 g = pow(c, vec3(agamma));
+	return vec3(0.0625) + g * vec3(0.9375);
+	#else
+	return pow(c, vec3(agamma));
+	#endif
 }
 
 float luma(in vec3 color) { return dot(color,vec3(0.2126, 0.7152, 0.0722)); }
@@ -134,71 +136,5 @@ vec3 getLightColor(float ColorTemperature) {
 	//lightColor /= max(dot(lightColor, vec3(0.3333)), (1.0 - smoothstep(500.0, 800.0, ColorTemperature)));
 
     return lightColor;
-}
-
-//==============================================================================
-// Vector stuff
-//==============================================================================
-
-float fov = atan(1./gbufferProjection[1][1]);
-float mulfov = (isEyeInWater == 1) ? gbufferProjection[1][1]*tan(fov * 0.85):1.0;
-
-vec4 fetch_vpos (vec3 spos) {
-	vec4 v = gbufferProjectionInverse * vec4(fma(spos, vec3(2.0f), vec3(-1.0)), 1.0);
-	v /= v.w;
-	v.xy *= mulfov;
-
-	return v;
-}
-
-vec4 fetch_vpos (vec2 uv, float z) {
-	return fetch_vpos(vec3(uv, z));
-}
-
-vec4 fetch_vpos (vec2 uv, sampler2D sam) {
-	return fetch_vpos(uv, texture2D(sam, uv).x);
-}
-
-float linearizeDepth(float depth) { return (2.0 * near) / (far + near - depth * (far - near));}
-
-float getLinearDepthOfViewCoord(vec3 viewCoord) {
-	vec4 p = vec4(viewCoord, 1.0);
-	p = gbufferProjection * p;
-	p /= p.w;
-	return linearizeDepth(fma(p.z, 0.5f, 0.5f));
-}
-
-float distanceSquared(vec3 a, vec3 b) {
-	a -= b;
-	return distance2(a);
-}
-
-vec2 screen_project (vec3 vpos) {
-	vec4 p = mat4(gbufferProjection) * vec4(vpos, 1.0f);
-	p /= p.w;
-	if(abs(p.z) > 1.0)
-		return vec2(-1.0);
-	return fma(p.st, vec2(0.5f), vec2(0.5f));
-}
-
-vec3 screen_project_depth (vec3 vpos) {
-	vec4 p = mat4(gbufferProjection) * vec4(vpos, 1.0f);
-	p /= p.w;
-	if(abs(p.z) > 1.0)
-		return vec3(-1.0);
-	return fma(p.xyz, vec3(0.5f), vec3(0.5f));
-}
-
-vec3 project_uv2skybox(vec2 uv) {
-	vec2 rad = uv * 4.0 * PI;
-    rad.y -= PI * 0.5;
-    return normalize(vec3(cos(rad.x) * cos(rad.y), sin(rad.y), sin(rad.x) * cos(rad.y)));
-}
-
-vec2 project_skybox2uv(vec3 nwpos) {
-	vec2 rad = vec2(atan(nwpos.z, nwpos.x), asin(nwpos.y));
-	rad += vec2(step(0.0, -rad.x) * (PI * 2.0), PI * 0.5);
-	rad *= 0.25 / PI;
-	return rad;
 }
 #endif 

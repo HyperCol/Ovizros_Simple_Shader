@@ -21,10 +21,6 @@ in GS_Material {
 	
 	vec3 normal;
 	vec2 n2;
-		#ifdef NORMALS
-		vec3 tangent;
-		vec3 binormal;
-		#endif
 } fs_in;
 
 void main() {

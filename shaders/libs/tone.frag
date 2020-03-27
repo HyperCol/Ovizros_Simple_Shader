@@ -203,7 +203,7 @@ void init_tone(out Tone t, vec2 texcoord) {
 	t.brightness = 1.0;
 	t.contrast = 1.0;
 	t.saturation = 1.0;
-	t.vibrance = 1.0;
+	t.vibrance = 1.1;
 	
 	t.s = vec3(0.0);
 	t.m = vec3(0.0);
@@ -263,6 +263,6 @@ void Hue_Adjustment(inout Tone t) {
 	
 	t.color = mix(color, t.color, t.useAdjustment);
 	//t.color = vignetteColor;
-	t.color = pow(t.color, agamma);
+	t.color = toGamma(t.color);
 }
 #endif 

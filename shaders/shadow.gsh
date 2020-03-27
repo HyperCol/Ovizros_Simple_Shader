@@ -4,15 +4,8 @@
 layout (triangles, invocations = 2) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-in VS_MAT {
-	mat4 ModelViewMatrix;
-	mat4 ProjectionMatrix;
-} gs_m_in[];
-
 #define SHADOW_MAP_BIAS 0.87f
 const float negShadowBias = 1.0f - SHADOW_MAP_BIAS;
-
-#define NORMALS
 
 uniform float far;
 
@@ -20,6 +13,7 @@ in VS_Material {
 	flat vec4 vColor;
 	vec2 texcoord;
 	float flag;
+	vec3 blockID;
 	
 	vec4 wpos;
 	vec4 vpos;
@@ -27,10 +21,9 @@ in VS_Material {
 	
 	vec3 normal;
 	vec2 n2;
-		#ifdef NORMALS
-		vec3 tangent;
-		vec3 binormal;
-		#endif
+	
+	mat4 ModelViewMatrix;
+	mat4 ProjectionMatrix;
 } gs_in[];
 
 out GS_Material { 
@@ -45,10 +38,6 @@ out GS_Material {
 	
 	vec3 normal;
 	vec2 n2;
-		#ifdef NORMALS
-		vec3 tangent;
-		vec3 binormal;
-		#endif
 } gs_out;
 
 void gsCommons(int n) {
@@ -63,21 +52,33 @@ void gsCommons(int n) {
 	gs_out.flag = gs_in[n].flag;
 
 	gs_out.normal = gs_in[n].normal;
-		#ifdef NORMALS
-		gs_out.tangent = gs_in[n].tangent;
-		gs_out.binormal = gs_in[n].binormal;
-		#endif
 	gs_out.n2 = gs_in[n].n2;
 }
 
 void main() {
 	for (int n = 0; n < gl_in.length(); ++n) {
 		gsCommons(n);
-		gl_Position = gl_in[n].gl_Position;
-		
-		float l = length(gl_Position.xy);
-		gl_Position.xy /= l * SHADOW_MAP_BIAS + negShadowBias;
-		EmitVertex();
+		if (gl_InvocationID == 0) {
+			gl_Position = gl_in[n].gl_Position;
+			
+			float l = sqrt(dot(gl_Position.xy, gl_Position.xy));
+			gl_Position.xy /= l * SHADOW_MAP_BIAS + negShadowBias;
+			gl_Position.xy = gl_Position.xy * 0.5 - 0.5 * gl_Position.w;
+			
+			if (!(gs_in[n].blockID.x == 95 || gs_in[n].blockID.x == 160 || gs_in[n].blockID.x == 90 || gs_in[n].blockID.x == 165 || gs_in[n].blockID.x == 79)) 
+				EmitVertex();
+		} else {
+			if (gs_in[n].blockID.y == 0 || gs_in[n].blockID.x == 8 || gs_in[n].blockID.x == 9 || gs_in[n].blockID.x == 95 || gs_in[n].blockID.x == 160 || gs_in[n].blockID.x == 90 || gs_in[n].blockID.x == 165 || gs_in[n].blockID.x == 79) {
+				gl_Position = gl_in[n].gl_Position;
+				
+				float l = sqrt(dot(gl_Position.xy, gl_Position.xy));
+				gl_Position.xy /= l * SHADOW_MAP_BIAS + negShadowBias;
+				gl_Position.xy = gl_Position.xy * 0.5 - 0.5 * gl_Position.w;
+				gl_Position.x += gl_Position.w;
+				
+				EmitVertex();
+			}
+		}
 	}
 	EndPrimitive();
 }

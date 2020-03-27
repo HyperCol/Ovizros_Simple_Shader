@@ -14,8 +14,8 @@ uniform sampler2D colortex1;
 uniform sampler2D gnormal;
 uniform sampler2D composite;
 uniform sampler2D gaux1;
-
-uniform sampler2D depthtex0;
+uniform sampler2D gaux2;
+uniform sampler2D gaux4;
 
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowcolor0;
@@ -32,8 +32,8 @@ uniform sampler2D shadowcolor0;
 
 #include "/libs/utility.glsl"
 #include "/libs/Program/atmosphere.inc"
-#include "/libs/effect.glsl"
-#include "/libs/tone.glsl"
+#include "/libs/effect.frag"
+#include "/libs/tone.frag"
 #include "/libs/animation.glsl"
 
 Tone tone;
@@ -52,8 +52,9 @@ void main() {
 	const vec2 p = vec2(s, -0.8 * VIEWPORT_SCALE);
 	fuv -= p;
 	fuv.x *= aspectRatio;
-	Color = mix(vec4(0.6), Color, round(fuv, 0.1));
+	Color = mix(vec4(0.75), Color, round(fuv, 0.1));
 	Color.rgb += 0.4 * (1.0 - round(fuv, 0.08));
 	#endif
 	#endif
+	//Color = texture2D(shadowtex0, tex);
 }

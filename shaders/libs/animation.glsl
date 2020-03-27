@@ -13,6 +13,8 @@
 uniform float aspectRatio;
 uniform bool hideGUI;
 
+float aaaIndex = pixel.y * 2;
+
 #ifdef _VERTEX_SHADER_
 
 /*
@@ -64,20 +66,20 @@ void rotate(inout vec2 uv, in float theter) {
 
 float lozenge(in vec2 puv, float edge) {
 	float e0 = puv.x + puv.y;
-	return smoothstep(edge - 0.01, edge + 0.01, e0);
+	return smoothstep(edge - aaaIndex, edge + aaaIndex, e0);
 }
 
 float round(in vec2 puv, float r) {
 	float e0 = dot(puv, puv);
 	r *= r;
-	return smoothstep(r - 0.01, r + 0.01, e0);
+	return smoothstep(r - aaaIndex, r + aaaIndex, e0);
 }
 
 float triangle(in vec2 puv, float aa) {					//Build an equilateral triangle
 	float e1 = 0.57735 * (1.0 - puv.x) - abs(puv.y);
 	float e2 = puv.x + 1.0; 
-	aa *= 0.2;
-	return min(smoothstep(0.0, 0.05 * aa, e1), smoothstep(0.0, 0.0443 * aa, e2));
+	aa *= 2 * pixel.y;
+	return min(smoothstep(0.0, 5.0 * aa, e1), smoothstep(0.0, 4.43 * aa, e2));
 }
 
 float triangle(in vec2 puv) {

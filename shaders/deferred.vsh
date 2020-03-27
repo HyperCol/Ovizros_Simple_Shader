@@ -1,6 +1,10 @@
 #version 430 compatibility
 #pragma optimize(on)
 
+out vec3 sunLight;
+out vec3 sunraw;
+out vec3 ambientU;
+
 #define AT_LSTEP
 
 #define UOS
@@ -8,10 +12,6 @@
 #define _VERTEX_SHADER_
 #include "/libs/Program/deferred.inc"
 #include "libs/atmosphere.glsl"
-
-out vec3 sunLight;
-out vec3 sunraw;
-out vec3 ambientU;
 
 void main() {
 	deferredCommons();
