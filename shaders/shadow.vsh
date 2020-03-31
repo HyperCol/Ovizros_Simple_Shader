@@ -6,7 +6,8 @@
 attribute vec3 mc_Entity;
 attribute vec4 at_tangent;
 
-#define NORMALS
+uniform mat4 shadowModelView;
+uniform mat4 shadowProjection;
 
 out VS_Material { 
 	flat vec4 vColor;
@@ -29,6 +30,7 @@ vec2 normalEncode(vec3 n) {return sqrt(-n.z*0.125+0.125) * normalize(n.xy) + 0.5
 
 void main() {
 	vs_out.wpos = gl_Vertex;
+	//if (mc_Entity.x == 8 || mc_Entity.y == 9) vs_out.wpos.y += 0.03;
 	vs_out.vpos = gl_ModelViewMatrix * vs_out.wpos;
 	vs_out.NDC = gl_ProjectionMatrix * vs_out.vpos;
 	gl_Position = vs_out.NDC;

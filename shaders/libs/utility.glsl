@@ -28,7 +28,7 @@
 #define select(x, def) float(x == def)
 #define Cselect(x, edge0, edge1) float(x == clamp(x, edge0, edge1))
 
-#define Positive(a) clamp(a, 0.0000001, 1.0)
+#define Positive(a) clamp(a, 0.0, 1.0)
 
 const float PI = 3.141592653f;
 const float gamma = 2.2f;
@@ -70,7 +70,7 @@ vec4 fromGamma(vec4 c) {
 #define SRGB_CLAMP
 
 vec3 toGamma(vec3 c) {
-	c = c / (c + 1.0);
+	//c = c / (c + 1.0);
 	#ifdef SRGB_CLAMP
 	vec3 g = pow(c, vec3(agamma));
 	return vec3(0.0625) + g * vec3(0.9375);

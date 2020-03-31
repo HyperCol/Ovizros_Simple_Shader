@@ -114,11 +114,11 @@ void atmosphereCommons() {
 	sunraw = texture2D(colortex0, project_skybox2uv(worldLightPosition)).rgb * (1.0 - cloud_coverage * 0.9);
 	sunLight = (sunraw) * f * vec3(1.2311, 1.0, 0.8286);
 
-	ambientU = texture2D(colortex0, vec2(0.0,  0.25   )).rgb;
-	ambient0 = texture2D(colortex0, vec2(0.0,  0.03293)).rgb;
-	ambient1 = texture2D(colortex0, vec2(0.25, 0.03293)).rgb;
-	ambient2 = texture2D(colortex0, vec2(0.125,0.03293)).rgb;
-	ambient3 = texture2D(colortex0, vec2(0.375,0.03293)).rgb;
+	ambientU = texture2D(colortex0, vec2(0.0,  0.5   )).rgb;
+	ambient0 = texture2D(colortex0, vec2(0.0,  0.06586)).rgb;
+	ambient1 = texture2D(colortex0, vec2(0.5, 0.06586)).rgb;
+	ambient2 = texture2D(colortex0, vec2(0.25,0.06586)).rgb;
+	ambient3 = texture2D(colortex0, vec2(0.75,0.06586)).rgb;
 	ambientD = (ambientU + ambient0 + ambient1 + ambient2 + ambient3) * 0.2;
 	#endif
 }

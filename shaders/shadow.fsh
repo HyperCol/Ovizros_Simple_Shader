@@ -24,6 +24,11 @@ in GS_Material {
 } fs_in;
 
 void main() {
-	Color0 = texture2D(tex, fs_in.texcoord) * fs_in.vColor;
-	Color1 = vec4(1.0);
+	if (fs_in.t == 0) {
+		Color0 = texture2D(tex, fs_in.texcoord) * fs_in.vColor;
+		Color1 = vec4(1.0);
+	} else if (fs_in.t == 1) {
+		Color0 = texture2D(tex, fs_in.texcoord) * fs_in.vColor * 0.4;
+		Color1 = vec4(1.0);
+	}
 }

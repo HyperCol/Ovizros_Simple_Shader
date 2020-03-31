@@ -20,6 +20,7 @@ vec4 fetch_vpos(vec3 spos) {
 	spos = fma(spos, vec3(2.0f), vec3(-1.0));
 	#ifdef EYE_3D
 	float i = sign(spos.x);
+	spos.xy /= VIEWPORT_SCALE;
 	spos.x -= s * i;
 	#endif
 	
@@ -42,7 +43,7 @@ vec4 fetch_vpos(vec2 uv, sampler2D sam) {
 
 vec3 fetch_wpos(vec3 vpos) {
 	vec3 wpos = mat3(gbufferModelViewInverse) * vpos;
-	return wpos;
+	return wpos + gbufferModelViewInverse[3].xyz;
 }
 
 vec3 fetch_wpos(vec4 vpos) {

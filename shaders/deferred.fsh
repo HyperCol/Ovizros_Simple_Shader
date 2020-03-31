@@ -27,6 +27,7 @@ void main() {
 	vec2 n = texture2D(gnormal, texcoord).xy;
 	Color1 = vec4(n, lmcoord.xy);
 	Color2 = vec4(pbr, lmcoord.p);
+	Color2.r = clamp(Color2.r, 0.01, 0.95);
 	
 	if (texcoord.y < 0.5) {
 		vec3 worldLightPosition = sunVector;
