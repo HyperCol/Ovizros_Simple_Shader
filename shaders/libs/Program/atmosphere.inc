@@ -13,27 +13,16 @@
 #ifdef _VERTEX_SHADER_
 
 out vec3 suncolor;
-out float clouds;
 
 #ifndef UOS
 uniform sampler2D colortex0;
 
-out vec3 sunLight;
-out vec3 sunraw;
-
-out vec3 ambientU;
-out vec3 ambient0;
-out vec3 ambient1;
-out vec3 ambient2;
-out vec3 ambient3;
-out vec3 ambientD;
+out vec3 ambient[6];
 #endif
 
 #include "/libs/Utilities/noise.glsl"
 
-float day = float(worldTime) / 24000.0;
-float day_cycle = mix(float(moonPhase), mod(float(moonPhase + 1), 8.0), day) + frametime * 0.0001;
-float cloud_coverage = max(noise(vec2(day_cycle, 0.0)) * 0.3, max(rain0, wetness));
+//#include "/libs/atmosphere.glsl"
 
 #define SUN_COLOR_TEMPERATURE_DEBUG 0 //[0 500 750 1000 1250 1500 1750 2000 2250 2500 2750 3000 3250 3500 3750 4000 4250 4500 4750 5000 5250 5500 5750 6000 6250 6500 6750 7000 7250 7500 7750 8000 8250 8500 8750 9000 10000 15000 20000 30000 40000]
 
@@ -54,7 +43,6 @@ float cloud_coverage = max(noise(vec2(day_cycle, 0.0)) * 0.3, max(rain0, wetness
 #define CLOUDY_COLOR_TEMPERATURE 7500.0 		//[6000.0 6250.0 6500.0 6750.0 7000.0 7250.0 7500.0 7750.0 8000.0]
 
 float getSunColorTemperature(in vec4 time) {
-	
 	#if SUN_LIGHT_COLOR == 0
     float base = 5500.0;
 	float i1 = 3500.0;
@@ -80,13 +68,13 @@ float getSunColorTemperature(in vec4 time) {
 	float i5 = 1250.0;
 	float i6 = 2250.0;
 	#elif SUN_LIGHT_COLOR == 3
-	float base = BASIC_SUN_COLOR_TEMPERATURE;
-	float i1 = BASIC_SUN_COLOR_TEMPERATURE - MORNING_COLOR_TEMPERATURE;
-	float i2 = NOON_COLOR_TEMPERATURE - BASIC_SUN_COLOR_TEMPERATURE;
-	float i3 = BASIC_SUN_COLOR_TEMPERATURE - EVENING_COLOR_TEMPERATURE;
-	float i4 = BASIC_MOON_COLOR_TEMPERATURE - BASIC_SUN_COLOR_TEMPERATURE;
-	float i5 = CLOUDY_COLOR_TEMPERATURE - BASIC_SUN_COLOR_TEMPERATURE;
-	float i6 = MIDNIGHT_COLOR_TEMPERATURE - BASIC_MOON_COLOR_TEMPERATURE;
+	float base 	= 	BASIC_SUN_COLOR_TEMPERATURE;
+	float i1 	= 	BASIC_SUN_COLOR_TEMPERATURE 	- MORNING_COLOR_TEMPERATURE;
+	float i2 	= 	NOON_COLOR_TEMPERATURE 			- BASIC_SUN_COLOR_TEMPERATURE;
+	float i3 	= 	BASIC_SUN_COLOR_TEMPERATURE 	- EVENING_COLOR_TEMPERATURE;
+	float i4 	= 	BASIC_MOON_COLOR_TEMPERATURE 	- BASIC_SUN_COLOR_TEMPERATURE;
+	float i5 	= 	CLOUDY_COLOR_TEMPERATURE 		- BASIC_SUN_COLOR_TEMPERATURE;
+	float i6 	= 	MIDNIGHT_COLOR_TEMPERATURE 		- BASIC_MOON_COLOR_TEMPERATURE;
 	#endif
 
 	float timeNoon = step(1.0, time.y);
@@ -98,28 +86,29 @@ float getSunColorTemperature(in vec4 time) {
 }
 
 void atmosphereCommons() {
-	clouds = cloud_coverage;
 	#if SUN_COLOR_TEMPERATURE_DEBUG == 0
 	float colorTemperature = getSunColorTemperature(SunTime0);
 	#else
 	float colorTemperature = float(SUN_COLOR_TEMPERATURE_DEBUG);
 	#endif
 	
+	float f = pow(max(abs(shaderLightVector.y), 0.0), 1.5);
 	suncolor = getLightColor(colorTemperature);
     suncolor *= max((1.0 - cloud_coverage * 1.2 - rain0 * 0.4), 0.0) * dot(SunTime0, vec4(MORNING_LIGHT, NOON_LIGHT, EVENING_LIGHT, NIGHT_LIGHT));
 	
 	#ifndef UOS
 	vec3 worldLightPosition = sunVector;
-	float f = pow(max(abs(worldLightPosition.y), 0.0), 1.5);
-	sunraw = texture2D(colortex0, project_skybox2uv(worldLightPosition)).rgb * (1.0 - cloud_coverage * 0.9);
-	sunLight = (sunraw) * f * vec3(1.2311, 1.0, 0.8286);
 
-	ambientU = texture2D(colortex0, vec2(0.0,  0.5   )).rgb;
-	ambient0 = texture2D(colortex0, vec2(0.0,  0.06586)).rgb;
-	ambient1 = texture2D(colortex0, vec2(0.5, 0.06586)).rgb;
-	ambient2 = texture2D(colortex0, vec2(0.25,0.06586)).rgb;
-	ambient3 = texture2D(colortex0, vec2(0.75,0.06586)).rgb;
-	ambientD = (ambientU + ambient0 + ambient1 + ambient2 + ambient3) * 0.2;
+	ambient[0] = texture(colortex0, vec2(0.5, 0.49999)).rgb;
+	ambient[1] = texture(colortex0, vec2(0.0, 0.06586)).rgb;
+	ambient[2] = texture(colortex0, vec2(0.5, 0.06586)).rgb;
+	ambient[3] = texture(colortex0, vec2(0.25,0.06586)).rgb;
+	ambient[4] = texture(colortex0, vec2(0.75,0.06586)).rgb;
+	ambient[5] = vec3(0.0);
+	for (int i = 0; i < 5; ++i) {
+		ambient[5] += ambient[i];
+	}
+	ambient[5] *= 0.2;
 	#endif
 }
 
@@ -136,19 +125,9 @@ void atmosphereCommons() {
  */
 
 in vec3 suncolor;
-in float clouds;
-float cloud_coverage = clouds;
 
 #ifndef UOS
-in vec3 sunLight;
-in vec3 sunraw;
-
-in vec3 ambientU;
-in vec3 ambient0;
-in vec3 ambient1;
-in vec3 ambient2;
-in vec3 ambient3;
-in vec3 ambientD;
+in vec3 ambient[6];
 #endif
 
 #endif

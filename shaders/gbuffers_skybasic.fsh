@@ -2,7 +2,7 @@
 #pragma optimize(on)
 
 /* DRAWBUFFERS:31 */
-const float flag = 1.0;
+const float flag = 0.0;
 #define UOS
 #define OUT_TEX 1
 #include "/libs/Program/gbuffers.inc"

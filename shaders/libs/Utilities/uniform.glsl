@@ -14,8 +14,11 @@ uniform float far;
 uniform vec3 skyColor;
 uniform vec3 BiomeType;
 uniform int isEyeInWater;
+
 uniform float wetness;
 uniform float rainStrength;
+uniform float rain0;
+uniform float rain1;
 
 uniform ivec2 eyeBrightness;
 uniform float centerDepthSmooth;
@@ -63,6 +66,8 @@ uniform vec4 SunTime0;
 uniform float frameTimeCounter;
 uniform int worldTime;
 uniform int moonPhase;
+uniform float day_cycle;
+uniform float cloud_coverage;
 
 //#define WorldTimeAnimation
 
@@ -72,6 +77,6 @@ float frametime = float(worldTime)/20.0;
 float frametime = frameTimeCounter;
 #endif
 
-float rain0 = rainStrength * smoothstep(0.0, 0.5, BiomeType.y);
-float rain1 = rainStrength * smoothstep(0.5, 1.0, BiomeType.y);
+//float rain0 = rainStrength * smoothstep(0.0, 0.5, BiomeType.y);
+//float rain1 = rainStrength * smoothstep(0.5, 1.0, BiomeType.y);
 #endif 

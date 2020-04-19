@@ -37,7 +37,7 @@ float noise(vec2 p) {
 }
 
 float noise_tex(in vec2 p) {
-	return fma(texture2D(noisetex, fract(p * 0.0050173)).r, 2.0, -1.0);
+	return fma(texture(noisetex, fract(p * 0.0050173)).r, 2.0, -1.0);
 }
 
 float bayer2(vec2 a){

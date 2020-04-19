@@ -34,10 +34,10 @@ vec4 textureGather(sampler2D sampler, vec2 coord) {
   vec2 c = coord * vec2(viewWidth, viewHeight);
   c = round(c) * pixel;
   return vec4(
-    texture2D(sampler, c + vec2(.0,pixel.y)     ).r,
-    texture2D(sampler, c + vec2(pixel.x,pixel.y)).r,
-    texture2D(sampler, c + vec2(.0,pixel.y)     ).r,
-    texture2D(sampler, c                        ).r
+    texture(sampler, c + vec2(.0,pixel.y)     ).r,
+    texture(sampler, c + vec2(pixel.x,pixel.y)).r,
+    texture(sampler, c + vec2(.0,pixel.y)     ).r,
+    texture(sampler, c                        ).r
   );
 }
 
@@ -45,10 +45,10 @@ vec4 textureGatherOffset(sampler2D sampler, vec2 coord, ivec2 offset) {
   vec2 c = coord * vec2(viewWidth, viewHeight);
   c = (round(c) + vec2(offset)) * pixel;
   return vec4(
-    texture2D(sampler, c + vec2(.0,pixel.y)     ).r,
-    texture2D(sampler, c + vec2(pixel.x,pixel.y)).r,
-    texture2D(sampler, c + vec2(.0,pixel.y)     ).r,
-    texture2D(sampler, c                        ).r
+    texture(sampler, c + vec2(.0,pixel.y)     ).r,
+    texture(sampler, c + vec2(pixel.x,pixel.y)).r,
+    texture(sampler, c + vec2(.0,pixel.y)     ).r,
+    texture(sampler, c                        ).r
   );
 }
 #endif

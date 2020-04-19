@@ -25,6 +25,8 @@
 #define plus(m, n) ((m + n) - m * n)
 #define nor(m, n) ((m + n) - 2 * m * n)
 
+#define sawtooth(x) (abs(fract(x) - 0.5) * 4.0 - 1.0)
+
 #define select(x, def) float(x == def)
 #define Cselect(x, edge0, edge1) float(x == clamp(x, edge0, edge1))
 
@@ -85,7 +87,7 @@ float luma(in vec3 color) { return dot(color,vec3(0.2126, 0.7152, 0.0722)); }
 // Light utilities
 //==============================================================================
 
-vec3 getLightColor(float ColorTemperature) {
+/*vec3 getLightColor(float ColorTemperature) {
 
     const vec3 c10 = vec3(1.0, 0.0337, 0.0);
 	const vec3 c15 = vec3(1.0, 0.1578, 0.0);
@@ -136,5 +138,56 @@ vec3 getLightColor(float ColorTemperature) {
 	//lightColor /= max(dot(lightColor, vec3(0.3333)), (1.0 - smoothstep(500.0, 800.0, ColorTemperature)));
 
     return lightColor;
+}*/
+
+vec3 getLightColor(in float colorTemperature) {
+	const vec3 sampler[] = vec3[26](
+		//d = 700 K
+		vec3(1.0000, 0.0401, 0.0000),	//1000K
+		vec3(1.0000, 0.1912, 0.0000),	//1700K
+		vec3(1.0000, 0.3364, 0.0501),	//2400K
+		vec3(1.0000, 0.4781, 0.1677),	//3100K
+		vec3(1.0000, 0.6028, 0.3207),	//3800K
+		vec3(1.0000, 0.7111, 0.4919),	//4500K
+		vec3(1.0000, 0.8044, 0.6685),	//5200K
+		vec3(1.0000, 0.8847, 0.8424),	//5900K
+		vec3(0.9917, 0.9458, 1.0000),	//6600K
+		vec3(0.8591, 0.8704, 1.0000),	//7300K
+		vec3(0.7644, 0.8139, 1.0000),	//8000K
+		vec3(0.6941, 0.7700, 1.0000),	//8700K
+		vec3(0.6402, 0.7352, 1.0000),	//9400K
+		vec3(0.5978, 0.7069, 1.0000),	//10100K
+		vec3(0.5637, 0.6836, 1.0000),	//10800K
+		vec3(0.5357, 0.6640, 1.0000),	//11500K
+		vec3(0.5125, 0.6474, 1.0000),	//12200K
+		vec3(0.4929, 0.6332, 1.0000),	//12900K
+		vec3(0.4762, 0.6209, 1.0000),	//13600K
+		vec3(0.4618, 0.6102, 1.0000),	//14300K
+		vec3(0.4493, 0.6007, 1.0000),	//15000K
+		//d = 5000 K
+		vec3(0.3920, 0.5559, 1.0000),	//20000K
+		vec3(0.3642, 0.5331, 1.0000),	//25000K
+		vec3(0.3471, 0.5188, 1.0000),	//30000K
+		vec3(0.3357, 0.5091, 1.0000),	//35000K
+		vec3(0.3277, 0.5022, 1.0000)	//40000K
+	);
+	
+	float t = clamp(colorTemperature, 1000.0, 40000.0);
+	vec3 color = vec3(0.0);
+	if (t < 15000) {
+		t = (t - 1000.0) / 700.0;
+		float d0;
+		float f = modf(t, d0);
+		int d = int(d0);
+		color = mix(sampler[d], sampler[d+1], f) * linearstep(500.0, 1000.0, colorTemperature);
+	} else {
+		t = (t + 95e3) / 5000.0;
+		float d0;
+		float f = modf(t, d0);
+		int d = int(d0);
+		color = mix(sampler[d-1], sampler[d], f);
+	}
+	
+	return color;
 }
 #endif 

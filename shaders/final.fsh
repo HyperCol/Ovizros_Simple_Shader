@@ -52,9 +52,10 @@ void main() {
 	const vec2 p = vec2(s, -0.8 * VIEWPORT_SCALE);
 	fuv -= p;
 	fuv.x *= aspectRatio;
-	Color = mix(vec4(0.75), Color, round(fuv, 0.1));
-	Color.rgb += 0.4 * (1.0 - round(fuv, 0.08));
+	Color = mix(vec4(0.75), Color, round(fuv, 0.1 * VIEWPORT_SCALE));
+	Color.rgb += 0.4 * (1.0 - round(fuv, 0.08 * VIEWPORT_SCALE));
 	#endif
 	#endif
-	//Color = texture2D(shadowtex0, tex);
+	//Color = texture(shadowtex0, tex);
+	//Color = texture(gaux1, tex).qqqq;
 }

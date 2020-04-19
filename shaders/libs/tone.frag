@@ -118,8 +118,8 @@ vec3 tonemap(in vec3 color, float adapted_lum) {
 void init_tone(out Tone t, vec2 texcoord) {
 	t.exposure = get_exposure();
 	
-	t.color = texture2D(composite, texcoord).rgb;
-	//t.blur = texture2D(gaux4, texcoord).rgb;// * (1.0 + t.exposure);
+	t.color = texture(composite, texcoord).rgb;
+	//t.blur = texture(gaux4, texcoord).rgb;// * (1.0 + t.exposure);
 	
 	t.useAdjustment = 1.0;
 	t.blurIndex = 0.0;

@@ -20,8 +20,8 @@ vec4 fetch_vpos(vec3 spos) {
 	spos = fma(spos, vec3(2.0f), vec3(-1.0));
 	#ifdef EYE_3D
 	float i = sign(spos.x);
-	spos.xy /= VIEWPORT_SCALE;
 	spos.x -= s * i;
+	spos.xy /= VIEWPORT_SCALE;
 	#endif
 	
 	vec4 v = gbufferProjectionInverse * vec4(spos, 1.0);
@@ -38,7 +38,7 @@ vec4 fetch_vpos(vec2 uv, float z) {
 }
 
 vec4 fetch_vpos(vec2 uv, sampler2D sam) {
-	return fetch_vpos(uv, texture2D(sam, uv).x);
+	return fetch_vpos(uv, texture(sam, uv).x);
 }
 
 vec3 fetch_wpos(vec3 vpos) {
@@ -107,22 +107,29 @@ vec3 shadowpos_distort(in vec3 shadowposition) {
 	return shadowposition.xyz * 0.5f + 0.5f;
 }*/
 
-vec3 wpos2shadowpos(in vec3 wpos) {
+vec3 wpos2shadowpos(in vec3 wpos, out float l) {
 	vec4 shadowposition = shadowModelView * vec4(wpos, 1.0f);
 	shadowposition = shadowProjection * shadowposition;
 	shadowposition /= shadowposition.w;
 
 	float distb = length(shadowposition.xy);
+	l = distb;
 	float distortFactor = negShadowBias + distb * SHADOW_MAP_BIAS;
 	shadowposition.xy /= distortFactor;
 
 	shadowposition.xyz = shadowposition.xyz * 0.5f + 0.5f;
 	//vec3 spos = shadowpos_distort(shadowpos_transform(wpos));
+	//shadowposition.z -= 0.00008;
 	shadowposition.xy *= 0.5;
 	return shadowposition.xyz;
 }
 
-vec3 wpos2shadowpos(in vec3 wpos, bool transparent) {
+vec3 wpos2shadowpos(in vec3 wpos) {
+	float l;
+	return wpos2shadowpos(wpos, l);
+}
+
+vec3 wpos2shadowpos(in vec3 wpos, const bool transparent) {
 	vec3 spos = wpos2shadowpos(wpos);
 	if (transparent) spos.x += 0.5;
 	return spos;

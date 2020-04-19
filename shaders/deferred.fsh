@@ -21,13 +21,13 @@ uniform sampler2D gaux1;
 #include "libs/atmosphere.glsl"
 
 void main() {
-	Color0 = fromGamma(texture2D(composite, texcoord));
-	vec3 pbr = texture2D(gaux1,texcoord).rgb;
-	vec3 lmcoord = texture2D(colortex1, texcoord).rgb;
-	vec2 n = texture2D(gnormal, texcoord).xy;
+	Color0 = fromGamma(texture(composite, texcoord));
+	vec3 pbr = texture(gaux1,texcoord).rgb;
+	vec3 lmcoord = texture(colortex1, texcoord).rgb;
+	vec2 n = texture(gnormal, texcoord).xy;
 	Color1 = vec4(n, lmcoord.xy);
 	Color2 = vec4(pbr, lmcoord.p);
-	Color2.r = clamp(Color2.r, 0.01, 0.95);
+	Color2.r = clamp(Color2.r, 0.06, 0.95);
 	
 	if (texcoord.y < 0.5) {
 		vec3 worldLightPosition = sunVector;
@@ -52,7 +52,7 @@ void main() {
 		color += (luma(ambientU) + sunraw * phaseM * 0.2) * cmie;
 		#endif
 		
-		color += sunraw * 5.0 * step(0.9998, mu_s) * horizon_mask;
+		color += suncolor * 5.0 * step(0.9998, mu_s) * horizon_mask;
 		Color3 = vec4(color, 1.0f);
 	}
 }

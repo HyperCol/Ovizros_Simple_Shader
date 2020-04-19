@@ -27,8 +27,8 @@ struct Material {
 };
 
 const float maskFlag[] = float[10](
-	0.0,		//0	void
-	1.0,		//1	sky
+	1.0,		//0	void
+	0.0,		//1	sky
 	0.95,		//2	lit_particle
 	0.9,		//3	particle
 	0.2,		//4	entity
@@ -41,14 +41,14 @@ const float maskFlag[] = float[10](
 
 uniform sampler2D gnormal;
 
-bool fetch_mask(float flag, int F) {
+bool fetch_mask(float flag, const int F) {
 	float F0 = maskFlag[F];
 	return (flag > (F0 - 0.08) && flag < (F0 + 0.08));
 }
 
 void init_mask(inout Mask mask, float flag) {
 	mask.flag = flag;
-	if (flag < 0.05) discard;
+	if (flag > 0.97) discard;
 	
 	mask.sky 		= 	fetch_mask(flag, 1);
 	mask.lit_particle = fetch_mask(flag, 2);
@@ -67,7 +67,7 @@ vec3 normalDecode(vec2 enc) {
 	float l = dot(nn.xyz,-nn.xyw);
 	nn.z = l;
 	nn.xy *= sqrt(l);
-	return normalize(nn.xyz * 2.0 + vec3(0.0, 0.0, -1.0));
+	return nn.xyz * 2.0 + vec3(0.0, 0.0, -1.0);
 }
 
 vec2 normalEncode(vec3 n) {
@@ -77,12 +77,12 @@ vec2 normalEncode(vec3 n) {
 }
 
 void init_Material(inout Material m, vec2 texcoord, float flag) {
-	vec4 nlm = texture2D(gnormal, texcoord);
+	vec4 nlm = texture(gnormal, texcoord);
 	m.normal = normalDecode(nlm.xy);
 	m.lmcoord = nlm.pq;
 	
 	m.NDC.xy = texcoord;
-	m.NDC.z = texture2D(depthtex0, texcoord).x;
+	m.NDC.z = texture(depthtex0, texcoord).x;
 	m.vpos = fetch_vpos(m.NDC).xyz;
 	m.wpos = fetch_wpos(m.vpos);
 	

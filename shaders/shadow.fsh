@@ -7,8 +7,6 @@ layout (location = 1) out vec4 Color1;
 
 uniform sampler2D tex;
 
-#define NORMALS
-
 in GS_Material { 
 	flat int t;
 	flat vec4 vColor;
@@ -23,12 +21,15 @@ in GS_Material {
 	vec2 n2;
 } fs_in;
 
+#include "/libs/GlslConfig"
+#include "/libs/utility.glsl"
+
 void main() {
 	if (fs_in.t == 0) {
-		Color0 = texture2D(tex, fs_in.texcoord) * fs_in.vColor;
+		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;
 		Color1 = vec4(1.0);
 	} else if (fs_in.t == 1) {
-		Color0 = texture2D(tex, fs_in.texcoord) * fs_in.vColor * 0.4;
+		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;
 		Color1 = vec4(1.0);
 	}
 }
