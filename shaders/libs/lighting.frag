@@ -69,6 +69,7 @@ vec3 BlendColoredShadow(float shadow0, float shadow1, vec4 shadowC) {
 		// Best looking method I've found so far.
 		return (shadowC.rgb * shadowC.a - shadowC.a * 0.5) * (-shadow1 * shadow0 + shadow1) + shadow1;
 }
+
 //#error shadow
 float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, float pix_bias, float l) 
 {
@@ -83,14 +84,14 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 		// PCSS - step 1 - find blockers
 		float dither = bayer_64x64(texcoord, vec2(viewWidth, viewHeight));
 		
-		float range = 0.1 / shadowDistance;
+		float range = 0.25 / shadowDistance;
 		vec2 average_blocker = vec2(0.0), count = vec2(0.0);
 		for (int i = 0; i < 4; i++) {
 			dither = fract(dither + 0.618);
 			vec2 uv = spos.xy + poisson_4[i] * dither * range;
 			
-			float depth0 = textureLod(shadowtex1, uv, 2.0).x;
-			float depth1 = textureLod(shadowtex0, uv + vec2(0.5, 0.0), 2.0).x;
+			float depth0 = textureLod(shadowtex1, uv, 0.0).x;
+			float depth1 = textureLod(shadowtex0, uv + vec2(0.5, 0.0), 0.0).x;
 
 			float w0 = step(0.0, spos.z - depth0 - (bias * 2));
 			float w1 = step(0.0, spos.z - depth1 - (bias));
@@ -98,11 +99,12 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 			count += vec2(w0, w1);
 		}
 		average_blocker /= count;
+		float dis = spos.z - average_blocker.x + bias;
 		
 		// PCSS - step 2 - filter
 		//vec3 color_shadow = vec3(0.0);
-		if (average_blocker.x + bias > 0 || average_blocker.y + bias > 0) {
-			range *= 32.0 * (spos.z - average_blocker.x + bias * 2) + 0.3;
+		if ((average_blocker.x + bias > 0 || average_blocker.y + bias > 0) && count != 0) {
+			range *= 32.0 * dis + 0.2;
 			
 			for (int i = 0; i < 4; i++) {
 				dither = fract(dither + 0.618);
@@ -120,9 +122,11 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 			shadow *= 0.0625;// color_shadow *= 0.0625;
 			//shadow *= 1.0 - dis.x;
 			#ifdef COLOURED_SHADOW
-			vec4 color_shadow = fromGamma(textureLod(colormap, spos.xy + vec2(0.5, 0.0), 1.0));
-			//color_shadow.rgb = BlendColoredShadow(average_blocker.y, average_blocker.x, color_shadow);
-			suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, 0.6);// + average_blocker.y;
+			if (average_blocker.y + bias > 0) {
+				vec4 color_shadow = fromGamma(textureLod(colormap, spos.xy + vec2(0.5, 0.0), 1.0));
+				//color_shadow.rgb = BlendColoredShadow(average_blocker.y, average_blocker.x, color_shadow);
+				suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);// + average_blocker.y;
+			}
 			#endif
 		} else {
 			return 0.0;
@@ -140,7 +144,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 	#endif
 	
 	//shadow *= 1.0 - smoothstep(0.6, 0.9, max(bias_offcenter.x, bias_offcenter.y));
-	return smoothstep(0.3, 1.0, shadow);//1.0 - pow(1.0 - average_blocker.x, 100.0);//
+	return smoothstep(0.3, 0.8, shadow);//1.0 - pow(1.0 - average_blocker.x, 100.0);//
 }
 
 //==============================================================================
@@ -240,7 +244,7 @@ vec3 light_calc_PBR(in Material mat, in Lighting Li)
     // add to outgoing radiance Lo             
     vec3 Lo = ((kD * (Li.albedo) + kS * Li.ambient * 3.0) / PI + specular) * radiance * NdotL;
 	
-	vec3 ambient = vec3(0.12) * (Li.albedo) * (mat.lmcoord.y * 0.8 + 0.2);
+	vec3 ambient = vec3(0.03) * (Li.albedo) * (mat.lmcoord.y * 0.8 + 0.2);
     vec3 color = ambient + Lo;
 	
 	color = mix(color, Li.albedo * 1.3, Li.emmisive);

@@ -25,10 +25,10 @@ in GS_Material {
 #include "/libs/utility.glsl"
 
 void main() {
-	if (fs_in.t == 0) {
+	if (fs_in.t == 1) {
 		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;
 		Color1 = vec4(1.0);
-	} else if (fs_in.t == 1) {
+	} else {
 		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;
 		Color1 = vec4(1.0);
 	}

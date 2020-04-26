@@ -56,6 +56,6 @@ void main() {
 	Color.rgb += 0.4 * (1.0 - round(fuv, 0.08 * VIEWPORT_SCALE));
 	#endif
 	#endif
-	//Color = texture(shadowtex0, tex);
+	//Color = texture(shadowcolor0, tex);
 	//Color = texture(gaux1, tex).qqqq;
 }

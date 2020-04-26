@@ -4,8 +4,8 @@
 layout (triangles, invocations = 2) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-#define SHADOW_MAP_BIAS 0.87f
-const float negShadowBias = 1.0f - SHADOW_MAP_BIAS;
+#include "/libs/GlslConfig"
+#include "/libs/voxels.glsl"
 
 float logistics(float x) {
 	return pow(2.0 / (1.0 + exp(-3.0*x)) - 1.0, 0.7);
@@ -42,6 +42,8 @@ out GS_Material {
 	vec2 n2;
 } gs_out;
 
+uniform vec3 cameraPosition;
+
 void gsCommons(int n) {
 	gs_out.t = gl_InvocationID;
 	gs_out.vColor = gs_in[n].vColor;
@@ -74,6 +76,7 @@ void main() {
 			if (!(gs_in[n].blockID.x == 95 || gs_in[n].blockID.x == 160 || gs_in[n].blockID.x == 90 || gs_in[n].blockID.x == 165 || gs_in[n].blockID.x == 79)) 
 				EmitVertex();
 		} else {
+			const float range = 9.0 / 256.0 * shadowMapResolution;
 			if (gs_in[n].blockID.x == 8 || gs_in[n].blockID.x == 9 || gs_in[n].blockID.x == 95 || gs_in[n].blockID.x == 160 || gs_in[n].blockID.x == 90 || gs_in[n].blockID.x == 165 || gs_in[n].blockID.x == 79) {
 				gl_Position = gl_in[n].gl_Position;
 				
@@ -84,6 +87,10 @@ void main() {
 				gl_Position.xy = gl_Position.xy * 0.5 - 0.5 * gl_Position.w;
 				gl_Position.x += gl_Position.w;
 				
+				EmitVertex();
+			} else if (max(abs(gs_in[n].wpos.x), abs(gs_in[n].wpos.z)) < range) {//
+				gl_Position = gl_in[n].gl_Position;
+				gl_Position.xy = gl_Position.xy * 0.5 + 0.5 * gl_Position.w;
 				EmitVertex();
 			}
 		}

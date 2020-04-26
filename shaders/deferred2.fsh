@@ -10,9 +10,9 @@ uniform sampler2D composite;
 uniform sampler2D gaux1;
 
 uniform sampler2D shadowcolor0;
-const bool shadowtex0MipmapEnabled = true;
-const bool shadowtex1MipmapEnabled = true;
-const bool shadowcolor0MipmapEnabled = true;
+const bool shadowtex0Mipmap = true;
+const bool shadowtex1Mipmap = true;
+const bool shadowcolor0Mipmap = true;
 
 #include "/libs/material.glsl"
 #include "/libs/lighting.frag"

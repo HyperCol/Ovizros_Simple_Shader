@@ -8,6 +8,8 @@ attribute vec4 at_tangent;
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+uniform mat4 shadowModelViewInverse;
+uniform mat4 shadowProjectionInverse;
 
 out VS_Material { 
 	flat vec4 vColor;
@@ -33,6 +35,8 @@ void main() {
 	//if (mc_Entity.x == 8 || mc_Entity.y == 9) vs_out.wpos.y += 0.03;
 	vs_out.vpos = gl_ModelViewMatrix * vs_out.wpos;
 	vs_out.NDC = gl_ProjectionMatrix * vs_out.vpos;
+	vs_out.vpos = shadowProjectionInverse * vs_out.NDC;
+	vs_out.wpos = shadowModelViewInverse * vs_out.vpos;
 	gl_Position = vs_out.NDC;
 	//gl_Position.z = gl_Position.z * 0.5 + 0.25;
 	vs_out.vColor = gl_Color;
