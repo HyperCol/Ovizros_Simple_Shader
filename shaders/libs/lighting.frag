@@ -29,40 +29,41 @@ struct Lighting {
 const vec2 shadowPixSize = vec2(1.0 / shadowMapResolution);
 
 float shadowTexSmooth(in sampler2D s, in vec3 spos, out float depth, in float bias) {
-	vec2 uv = spos.xy * vec2(shadowMapResolution) - 1.0;
+	vec2 uv = spos.xy * shadowMapResolution - 1.0;
 	vec2 iuv = floor(uv);
 	vec2 fuv = uv - iuv;
 
-    float g0x = g0(fuv.x);
-    float g1x = g1(fuv.x);
-    float h0x = h0(fuv.x) * 0.75;
-    float h1x = h1(fuv.x) * 0.75;
-    float h0y = h0(fuv.y) * 0.75;
-    float h1y = h1(fuv.y) * 0.75;
+    vec2 g01x = vec2(g0(fuv.x), g1(fuv.x));
+	vec2 h0xy = vec2(h0(fuv.x), h0(fuv.y)) * 0.75;
+	vec2 h1xy = vec2(h1(fuv.x), h1(fuv.y)) * 0.75;
 
-	vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) + 0.5) * shadowPixSize;
-	vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) + 0.5) * shadowPixSize;
-	vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) + 0.5) * shadowPixSize;
-	vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) + 0.5) * shadowPixSize;
+	vec2 p0 = (iuv + h0xy                 + 0.5) * shadowPixSize;
+	vec2 p1 = (iuv + vec2(h1xy.x, h0xy.y) + 0.5) * shadowPixSize;
+	vec2 p2 = (iuv + vec2(h0xy.x, h1xy.y) + 0.5) * shadowPixSize;
+	vec2 p3 = (iuv + h1xy                 + 0.5) * shadowPixSize;
 
 	depth = 0.0;
-	float texel = texture(s, p0).x; depth += texel;
+	float texel = texture(s, p0).x;
+	depth += texel;
 	float res0 = float(texel + bias < spos.z);
 
-	texel = texture(s, p1).x; depth += texel;
+	texel = texture(s, p1).x;
+	depth += texel;
 	float res1 = float(texel + bias < spos.z);
 
-	texel = texture(s, p2).x; depth += texel;
+	texel = texture(s, p2).x;
+	depth += texel;
 	float res2 = float(texel + bias < spos.z);
 
-	texel = texture(s, p3).x; depth += texel;
+	texel = texture(s, p3).x;
+	depth += texel;
 	float res3 = float(texel + bias < spos.z);
 	depth *= 0.25;
 
-    return g0(fuv.y) * (g0x * res0  +
-                        g1x * res1) +
-           g1(fuv.y) * (g0x * res2  +
-                        g1x * res3);
+    return g0(fuv.y) * (g01x.x * res0  +
+                        g01x.y * res1) +
+           g1(fuv.y) * (g01x.x * res2  +
+                        g01x.y * res3);
 }
 
 vec3 BlendColoredShadow(float shadow0, float shadow1, vec4 shadowC) {
@@ -84,7 +85,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 		// PCSS - step 1 - find blockers
 		float dither = bayer_64x64(texcoord, vec2(viewWidth, viewHeight));
 		
-		float range = 0.25 / shadowDistance;
+		vec2 range = vec2(0.25) / shadowDistance;
 		vec2 average_blocker = vec2(0.0), count = vec2(0.0);
 		for (int i = 0; i < 4; i++) {
 			dither = fract(dither + 0.618);
@@ -99,16 +100,18 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 			count += vec2(w0, w1);
 		}
 		average_blocker /= count;
-		float dis = spos.z - average_blocker.x + bias;
+		vec2 dis = spos.z - average_blocker + bias;
 		
 		// PCSS - step 2 - filter
-		//vec3 color_shadow = vec3(0.0);
+	#ifdef COLOURED_SHADOW
+		vec4 color_shadow_sum = vec4(0.0);
+	#endif
 		if ((average_blocker.x + bias > 0 || average_blocker.y + bias > 0) && count != 0) {
 			range *= 32.0 * dis + 0.2;
 			
 			for (int i = 0; i < 4; i++) {
 				dither = fract(dither + 0.618);
-				vec2 uv = spos.xy + range * poisson_4[i] * dither;
+				vec2 uv = spos.xy + range.x * poisson_4[i] * dither;
 
 				vec4 depth = textureGather(shadowtex1, uv.st);
 				//float wdepth1 = texture(shadowtex0, uv.st + vec2(0.5, 0.0)).x;
@@ -117,10 +120,29 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 				
 				vec4 s1 = step(0.0, spos.zzzz - depth - bias);
 				shadow += sum4(s1);
+
+			#ifdef COLOURED_SHADOW
+				uv = spos.xy + range.y * poisson_4[i] * dither;
+				depth.x = texture(shadowtex0, uv.xy).x;
+				depth.y = texture(shadowtex1, uv.xy).x;
+
+				if(depth.y > depth.x)
+				{
+					vec4 color_shadow = fromGamma(textureLod(colormap, uv.xy, 1.0));
+					color_shadow_sum += color_shadow;
+				}
+			#endif
+
+
 			}
 			//const float i = 1.0 / 48.0;
-			shadow *= 0.0625;// color_shadow *= 0.0625;
+			shadow *= 0.0625;
+		#ifdef COLOURED_SHADOW
+			color_shadow_sum *= 0.0625;
+			suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);
+		#endif
 			//shadow *= 1.0 - dis.x;
+		/*
 			#ifdef COLOURED_SHADOW
 			if (average_blocker.y + bias > 0) {
 				vec4 color_shadow = fromGamma(textureLod(colormap, spos.xy + vec2(0.5, 0.0), 1.0));
@@ -128,6 +150,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 				suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);// + average_blocker.y;
 			}
 			#endif
+		*/
 		} else {
 			return 0.0;
 		}
