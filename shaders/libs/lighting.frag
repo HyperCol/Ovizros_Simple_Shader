@@ -84,7 +84,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 	#ifdef SHADOW_FILTER
 		// PCSS - step 1 - find blockers
 		float dither = bayer_64x64(texcoord, vec2(viewWidth, viewHeight));
-		
+
 		vec2 range = vec2(0.25) / shadowDistance;
 		vec2 average_blocker = vec2(0.0), count = vec2(0.0);
 		for (int i = 0; i < 4; i++) {
@@ -94,10 +94,21 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 			float depth0 = textureLod(shadowtex1, uv, 0.0).x;
 			float depth1 = textureLod(shadowtex0, uv + vec2(0.5, 0.0), 0.0).x;
 
-			float w0 = step(0.0, spos.z - depth0 - (bias * 2));
-			float w1 = step(0.0, spos.z - depth1 - (bias));
+			float w0 = step(0.0, spos.z - depth0 - (bias * 2.0));
+			float w1 = step(0.0, spos.z - depth1 -  bias       );
 			average_blocker += vec2(w0 * depth0, w1 * depth1);
 			count += vec2(w0, w1);
+
+		/*  Might be work, but I'm not sure, I'll try it out later!
+			vec4 depth0 = textureGather(shadowtex1, uv);
+			vec4 depth1 = textureGather(shadowtex0, uv + vec2(0.5, 0.0));
+
+			vec2 depth = vec4(sum4(spos.z - depth0 - bias * 2.0), sum4(spos.z - depth1 - bias));
+			vec2 w = step(vec2(0.0), depth);
+
+			average_blocker += w * depth;
+			count += w;
+		*/
 		}
 		average_blocker /= count;
 		vec2 dis = spos.z - average_blocker + bias;
@@ -114,14 +125,14 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 				vec2 uv = spos.xy + range.x * poisson_4[i] * dither;
 
 				vec4 depth = textureGather(shadowtex1, uv.st);
-				//float wdepth1 = texture(shadowtex0, uv.st + vec2(0.5, 0.0)).x;
-				
-				//color_shadow += BlendColoredShadow(wdepth1 * 0.5 + 0.5, depth.w * 0.5 + 0.5, texture(colormap, uv.st + vec2(0.5, 0.0)) * 2.0);
 				
 				vec4 s1 = step(0.0, spos.zzzz - depth - bias);
 				shadow += sum4(s1);
 
 			#ifdef COLOURED_SHADOW
+				//float wdepth1 = texture(shadowtex0, uv.st + vec2(0.5, 0.0)).x;
+				//color_shadow += BlendColoredShadow(wdepth1 * 0.5 + 0.5, depth.w * 0.5 + 0.5, texture(colormap, uv.st + vec2(0.5, 0.0)) * 2.0);
+
 				uv = spos.xy + range.y * poisson_4[i] * dither;
 				depth.x = texture(shadowtex0, uv.xy).x;
 				depth.y = texture(shadowtex1, uv.xy).x;
