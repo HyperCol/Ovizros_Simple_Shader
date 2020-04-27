@@ -18,18 +18,20 @@ uniform float mulfov;
 
 vec4 fetch_vpos(vec3 spos) {
 	spos = fma(spos, vec3(2.0f), vec3(-1.0));
-	#ifdef EYE_3D
-	float i = sign(spos.x);
-	spos.x -= s * i;
+
+#ifdef EYE_3D
+	float i = sign(spos.x); // Get exact direction of x-axis.
+	spos.x -= s * i;        // When i > 0, it'll shift y-axis from left to right, i < 0 works in the opposite affect. But it might cause bugs when i = 0!
 	spos.xy /= VIEWPORT_SCALE;
-	#endif
+#endif
 	
 	vec4 v = gbufferProjectionInverse * vec4(spos, 1.0);
-	v /= v.w;
-	v.xy *= mulfov;
-	#ifdef EYE_3D
+		 v /= v.w;
+		 v.xy *= mulfov;
+
+#ifdef EYE_3D
 	v.x += HALF_PUPIL_DISTANCE * i;
-	#endif
+#endif
 	return v;
 }
 
@@ -50,18 +52,21 @@ vec3 fetch_wpos(vec4 vpos) {
 	return fetch_wpos(vpos.xyz);
 }
 
-float linearizeDepth(float depth) { return (2.0 * near) / (far + near - depth * (far - near));}
+float linearizeDepth(float depth)
+{
+	return (2.0 * near) / (far + near - depth * (far - near));
+}
 
 float getLinearDepthOfViewCoord(vec3 viewCoord) {
 	vec4 p = vec4(viewCoord, 1.0);
-	p = gbufferProjection * p;
-	p /= p.w;
-	return linearizeDepth(fma(p.z, 0.5f, 0.5f));
+		 p = gbufferProjection * p;
+		 //p /= p.w;
+	return linearizeDepth(fma(p.z / p.w, 0.5f, 0.5f));
 }
 
 float distanceSquared(vec3 a, vec3 b) {
-	a -= b;
-	return distance2(a);
+	//a -= b;
+	return distance2(a - b);
 }
 
 vec2 screen_project (vec3 vpos) {
@@ -85,12 +90,13 @@ vec3 screen_project_depth (vec3 vpos) {
 //==============================================================================
 
 #ifndef _VERTEX_SHADER_
-/*vec3 shadowpos_transform(in vec3 wpos) {
+/*
+vec3 shadowpos_transform(in vec3 wpos) {
 	vec4 shadowposition = shadowModelView * vec4(wpos, 1.0f);
-	shadowposition = shadowProjection * shadowposition;
-	shadowposition /= shadowposition.w;
+		 shadowposition = shadowProjection * shadowposition;
+		 //shadowposition /= shadowposition.w;
 
-	return shadowposition.xyz;
+	return shadowposition.xyz / shadowposition.w;
 }
 
 float logistics(float x) {
@@ -105,7 +111,8 @@ vec3 shadowpos_distort(in vec3 shadowposition) {
 	shadowposition.z = shadowposition.z * 0.5 + 0.25;
 
 	return shadowposition.xyz * 0.5f + 0.5f;
-}*/
+}
+*/
 
 vec3 wpos2shadowpos(in vec3 wpos, out float l) {
 	vec4 shadowposition = shadowModelView * vec4(wpos, 1.0f);
