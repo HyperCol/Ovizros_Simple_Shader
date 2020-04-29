@@ -101,7 +101,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 
 		/*  Might be work, but I'm not sure, I'll try it out later!
 			vec4 depth0 = textureGather(shadowtex1, uv);
-			vec4 depth1 = textureGather(shadowtex0, uv + vec2(0.5, 0.0));//I had try making that.It even work worse than texture2D!
+			vec4 depth1 = textureGather(shadowtex0, uv + vec2(0.5, 0.0));//I had tried making that.It even works worse than texture2D!
 
 			vec2 depth = vec4(sum4(spos.z - depth0 - bias * 2.0), sum4(spos.z - depth1 - bias));
 			vec2 w = step(vec2(0.0), depth);
