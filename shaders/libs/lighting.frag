@@ -101,7 +101,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 
 		/*  Might be work, but I'm not sure, I'll try it out later!
 			vec4 depth0 = textureGather(shadowtex1, uv);
-			vec4 depth1 = textureGather(shadowtex0, uv + vec2(0.5, 0.0));
+			vec4 depth1 = textureGather(shadowtex0, uv + vec2(0.5, 0.0));//I had try making that.It even work worse than texture2D!
 
 			vec2 depth = vec4(sum4(spos.z - depth0 - bias * 2.0), sum4(spos.z - depth1 - bias));
 			vec2 w = step(vec2(0.0), depth);
@@ -135,7 +135,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 
 				uv = spos.xy + range.y * poisson_4[i] * dither;
 				depth.x = texture(shadowtex0, uv.xy).x;
-				depth.y = texture(shadowtex1, uv.xy).x;
+				depth.y = texture(shadowtex1, uv.xy).x;//This do not work! Glasses etc. has been replaced to vec2(0.5, 0.0)
 
 				if(depth.y > depth.x)
 				{
@@ -149,7 +149,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 			//const float i = 1.0 / 48.0;
 			shadow *= 0.0625;
 		#ifdef COLOURED_SHADOW
-			color_shadow_sum *= 0.0625;
+			color_shadow_sum *= 0.0625;//???
 			suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);
 		#endif
 			//shadow *= 1.0 - dis.x;
