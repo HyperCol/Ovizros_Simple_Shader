@@ -85,7 +85,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 		// PCSS - step 1 - find blockers
 		float dither = bayer_64x64(texcoord, vec2(viewWidth, viewHeight));
 
-		vec2 range = vec2(0.25) / shadowDistance;
+		float range = 0.25 / shadowDistance;
 		vec2 average_blocker = vec2(0.0), count = vec2(0.0);
 		for (int i = 0; i < 4; i++) {
 			dither = fract(dither + 0.618);
@@ -111,7 +111,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 		*/
 		}
 		average_blocker /= count;
-		vec2 dis = spos.z - average_blocker + bias;
+		float dis = spos.z - max(average_blocker.x, average_blocker.y) + bias;
 		
 		// PCSS - step 2 - filter
 	#ifdef COLOURED_SHADOW
@@ -122,14 +122,14 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 			
 			for (int i = 0; i < 4; i++) {
 				dither = fract(dither + 0.618);
-				vec2 uv = spos.xy + range.x * poisson_4[i] * dither;
+				vec2 uv = spos.xy + range * poisson_4[i] * dither;
 
 				vec4 depth = textureGather(shadowtex1, uv.st);
 				
 				vec4 s1 = step(0.0, spos.zzzz - depth - bias);
 				shadow += sum4(s1);
 
-			#ifdef COLOURED_SHADOW
+				/*#ifdef COLOURED_SHADOW
 				//float wdepth1 = texture(shadowtex0, uv.st + vec2(0.5, 0.0)).x;
 				//color_shadow += BlendColoredShadow(wdepth1 * 0.5 + 0.5, depth.w * 0.5 + 0.5, texture(colormap, uv.st + vec2(0.5, 0.0)) * 2.0);
 
@@ -142,18 +142,17 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 					vec4 color_shadow = fromGamma(textureLod(colormap, uv.xy, 1.0));
 					color_shadow_sum += color_shadow;
 				}
-			#endif
-
-
+				#endif*/
 			}
 			//const float i = 1.0 / 48.0;
 			shadow *= 0.0625;
-		#ifdef COLOURED_SHADOW
+			
+			/*#ifdef COLOURED_SHADOW
 			color_shadow_sum *= 0.0625;//???
 			suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);
-		#endif
-			//shadow *= 1.0 - dis.x;
-		/*
+			#endif
+			//shadow *= 1.0 - dis.x;*/
+
 			#ifdef COLOURED_SHADOW
 			if (average_blocker.y + bias > 0) {
 				vec4 color_shadow = fromGamma(textureLod(colormap, spos.xy + vec2(0.5, 0.0), 1.0));
@@ -161,7 +160,7 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 				suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);// + average_blocker.y;
 			}
 			#endif
-		*/
+		
 		} else {
 			return 0.0;
 		}
@@ -173,7 +172,11 @@ float light_fetch_shadow(in sampler2D colormap, vec3 spos, inout vec3 suncolor, 
 		#ifdef SHADOW_COLOR
 		float M2;
 		float shadow0 = shadowTexSmooth(shadowtex1, spos, M2, bias);
-		if (M2 + bias < M1) suncolor = mix(suncolor, texture(shadowcolor0, spos.xy + vec2(0.5, 0.0)) * luma(suncolor) * 0.7, shadow0);
+		
+		if (M2 + bias < M1) {
+			vec4 color_shadow = fromGamma(textureLod(colormap, spos.xy + vec2(0.5, 0.0), 1.0));
+			suncolor *= mix(color_shadow.rgb * color_shadow.a - color_shadow.a + 0.5, color_shadow.rgb, pix_bias);// + average_blocker.y;
+		 }
 		#endif
 	#endif
 	

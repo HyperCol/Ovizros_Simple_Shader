@@ -19,19 +19,20 @@ uniform float mulfov;
 vec4 fetch_vpos(vec3 spos) {
 	spos = fma(spos, vec3(2.0f), vec3(-1.0));
 
-#ifdef EYE_3D
+	#ifdef EYE_3D
 	float i = sign(spos.x); // Get exact direction of x-axis.
+	
 	spos.x -= s * i;        // When i > 0, it'll shift y-axis from left to right, i < 0 works in the opposite affect. But it might cause bugs when i = 0!
 	spos.xy /= VIEWPORT_SCALE;
-#endif
+	#endif
 	
 	vec4 v = gbufferProjectionInverse * vec4(spos, 1.0);
 		 v /= v.w;
 		 v.xy *= mulfov;
 
-#ifdef EYE_3D
+	#ifdef EYE_3D
 	v.x += HALF_PUPIL_DISTANCE * i;
-#endif
+	#endif
 	return v;
 }
 
