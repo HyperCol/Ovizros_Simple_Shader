@@ -60,7 +60,7 @@ void main() {
 	vs_out.vColor = gl_Color;
 	vs_out.texcoord = gl_MultiTexCoord0.st;
 	
-	vs_out.normal = gl_NormalMatrix * gl_Normal;
+	vs_out.normal = mat3(shadowModelViewInverse) * gl_NormalMatrix * gl_Normal;
 	vs_out.n2 = normalEncode(vs_out.normal);
 	
 	vs_out.ModelViewMatrix = gl_ModelViewMatrix;

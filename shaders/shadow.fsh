@@ -29,7 +29,7 @@ void main() {
 		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;
 		Color1 = vec4(1.0);
 	} else {
-		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;
+		Color0 = texture(tex, fs_in.texcoord) * fs_in.vColor;//vec4(fs_in.texcoord, 0.0, 1.0);//
 		Color1 = vec4(1.0);
 	}
 }

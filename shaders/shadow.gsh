@@ -1,8 +1,12 @@
 #version 430 core
+#include "/libs/compat.glsl"
 #pragma optimize(on)
 
 layout (triangles, invocations = 2) in;
 layout (triangle_strip, max_vertices = 3) out;
+
+#include "/libs/GlslConfig"
+#include "/libs/voxels.glsl"
 
 in VS_Material { 
 	flat vec4 vColor;
@@ -37,6 +41,11 @@ out GS_Material {
 
 uniform vec3 cameraPosition;
 
+uniform mat4 shadowModelView;
+uniform mat4 shadowProjection;
+uniform mat4 shadowModelViewInverse;
+uniform mat4 shadowProjectionInverse;
+
 void gsCommons(int n) {
 	gs_out.t = gl_InvocationID;
 	gs_out.vColor = gs_in[n].vColor;
@@ -53,6 +62,12 @@ void gsCommons(int n) {
 }
 
 void main() {
+	vec3 average_pos = vec3(0.0);
+	for (int m = 0; m < gl_in.length(); ++m) {
+		average_pos += gs_in[m].wpos.xyz;// / gs_in[m].wpos.w;
+	}
+	average_pos /= gl_in.length();
+	
 	for (int n = 0; n < gl_in.length(); ++n) {
 		gsCommons(n);
 		if (gl_InvocationID == 0) {
@@ -66,8 +81,9 @@ void main() {
 				
 				EmitVertex();
 			} else if (gs_in[n].step != 3) {
-				gl_Position = gs_in[n].NDC;
-				gl_Position.xy = gl_Position.xy * 0.5 + 0.5 * gl_Position.w;
+				vec3 p = mix(average_pos, gs_in[n].wpos.xyz, 0.8);
+				gl_Position = vec4(toVoxelSpace(p), 0.0, 1.0);
+				//gl_Position.xy = gl_Position.xy * 0.5 + 0.5 * gl_Position.w;
 				EmitVertex();
 			}
 		}

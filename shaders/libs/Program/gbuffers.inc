@@ -308,7 +308,7 @@ void gbufferCommons() {
 	#endif
 	
 	#ifdef UT
-	Color0 = texture2D(texture, fs_in.texcoord.st) * fs_in.vColor;
+	Color0 = texture2D(texture, fs_in.texcoord.st) * fs_in.vColor;//vec4(fs_in.texcoord.xy, 0.0, 1.0);//
 	#else
 	Color0 = fs_in.vColor;
 	#endif

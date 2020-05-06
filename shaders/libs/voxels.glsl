@@ -2,22 +2,29 @@
 #define _INCLUDE_VOXEL_
 
 const float shadowMapPixel = 1.0 / shadowMapResolution;
-const float vRange = floor(pow(shadowMapResolution, 2.0 / 3.0) * 0.25);
+const float vRange = floor(pow(shadowMapResolution * shadowMapResolution * 0.5 , 1.0 / 3.0) * 0.5);
 
-dvec2 toVoxelSpase(in vec3 wpos) {
+
+
+vec2 toVoxelSpace(in vec3 wpos) {
 	//discard useless surface
 	//valid = (fract(wpos) < vec3(0.05));
 	//wpos = round(wpos);
 	
-	const double mapsize = double(4.0 * vRange / shadowMapResolution);
-	wpos.y += vRange;
-	dvec2 uv = dvec2(wpos.xz) + dvec2(vRange * wpos.y * 2.0, 0.0);
-	uv *= 2.0 * shadowMapPixel;
+	wpos = wpos + vRange;
 	
-	return uv;
+	vec2 uv = wpos.xz + vec2(vRange * wpos.y * 2.0, 0.0);
+	float s1, s2;
+	uv.y = modf(uv.y, s1);
+	uv.x += s1 * 4.0 * vRange * vRange;
+	uv *= shadowMapPixel;
+	uv.x = modf(uv.x, s2);
+	uv.y += s2 * shadowMapPixel;
+	//uv = mod(uv, vec2(shadowMapPixel));
+	
+	return uv * 2.0 + vec2(-1.0, 0.0);
 }
 
-/* dvec3 voxelSpace
- *
- */
+/*dvec3 voxelSpace
+*/
 #endif 
