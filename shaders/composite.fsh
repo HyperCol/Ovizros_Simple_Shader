@@ -1,4 +1,4 @@
-#version 430 compatibility
+#version 430 core
 #include "/libs/compat.glsl"
 #pragma optimize(on)
 
